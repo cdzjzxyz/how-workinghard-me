@@ -1,0 +1,300 @@
+DELIMITER //
+CREATE TRIGGER after_leave_insert_update_attendance
+AFTER INSERT ON leave_record
+FOR EACH ROW
+BEGIN
+    DECLARE current_date DATE;
+    DECLARE initial_daily_score INT DEFAULT 100;
+    DECLARE leave_score INT;
+
+    IF NEW.status = 1 THEN -- 假期被批准
+        SET leave_score = initial_daily_score - 1; -- 请假扣1分后的当日分数
+        IF leave_score < 0 THEN
+            SET leave_score = 0;
+        END IF;
+
+        SET current_date = NEW.start_date;
+        WHILE current_date <= NEW.end_date DO
+            -- 尝试更新已有的考勤记录
+            UPDATE attendance
+            SET status = 5, -- 5=请假
+                performance_score = leave_score
+            WHERE emp_id = NEW.emp_id AND date = current_date;
+
+            -- 如果当天没有考勤记录，则插入一条请假记录
+            IF ROW_COUNT() = 0 THEN
+                INSERT INTO attendance (emp_id, date, status, performance_score, check_in_time, check_out_time)
+                VALUES (NEW.emp_id, current_date, 5, leave_score, NULL, NULL);
+            END IF;
+            SET current_date = DATE_ADD(current_date, INTERVAL 1 DAY);
+        END WHILE;
+    END IF;
+END //
+DELIMITER ;
+-------------------------------------------------------------
+DELIMITER //
+CREATE TRIGGER before_attendance_insert_
+BEFORE INSERT ON attendance
+FOR EACH ROW
+BEGIN
+    DECLARE v_last_score_this_month INT;
+    DECLARE v_base_score_for_calc INT;
+    DECLARE v_deduction INT DEFAULT 0;
+    DECLARE v_current_status TINYINT;
+
+    -- 步骤1: 确定 status (此部分逻辑需要非常健壮)
+    SET v_current_status = NEW.status;
+    IF NEW.status IS NULL OR NEW.status = 1 THEN
+        IF NEW.check_in_time IS NULL AND NEW.check_out_time IS NULL THEN SET v_current_status = 4;
+        ELSEIF NEW.check_in_time IS NULL AND NEW.check_out_time IS NOT NULL THEN SET v_current_status = 4;
+        ELSEIF NEW.check_in_time IS NOT NULL THEN
+            IF TIME(NEW.check_in_time) > '08:00:00' THEN SET v_current_status = 2;
+            ELSE SET v_current_status = 1;
+            END IF;
+        END IF;
+    END IF;
+    SET NEW.status = v_current_status;
+
+    -- 步骤2: 获取本月之前的最后分数
+    SELECT performance_score INTO v_last_score_this_month
+    FROM attendance
+    WHERE emp_id = NEW.emp_id
+      AND DATE_FORMAT(date, '%Y-%m') = DATE_FORMAT(NEW.date, '%Y-%m')
+      AND date < NEW.date
+    ORDER BY date DESC, id DESC LIMIT 1;
+
+    IF v_last_score_this_month IS NULL THEN SET v_base_score_for_calc = 100;
+    ELSE SET v_base_score_for_calc = v_last_score_this_month;
+    END IF;
+
+    -- 步骤3: 计算扣分
+    CASE NEW.status
+        WHEN 2 THEN SET v_deduction = 2;
+        WHEN 3 THEN SET v_deduction = 2;
+        WHEN 4 THEN SET v_deduction = 5;
+        WHEN 5 THEN SET v_deduction = 1;
+        ELSE SET v_deduction = 0;
+    END CASE;
+
+    SET NEW.performance_score = v_base_score_for_calc - v_deduction;
+    IF NEW.performance_score < 0 THEN SET NEW.performance_score = 0; END IF;
+END //
+DELIMITER ;
+---------------------------------------------------------------------------------------
+
+---------------------------------------------------------------------------------------------------
+DELIMITER //
+CREATE TRIGGER before_attendance_update
+BEFORE UPDATE ON attendance
+FOR EACH ROW
+BEGIN
+    DECLARE v_last_score_this_month INT;
+    DECLARE v_base_score_for_calc INT;
+    DECLARE v_deduction INT DEFAULT 0;
+    DECLARE v_status_changed BOOLEAN DEFAULT FALSE;
+    DECLARE v_new_status_intermediate TINYINT;
+
+    SET v_new_status_intermediate = NEW.status; -- 先用新传入的状态
+
+    -- 更新下班时间时，判断早退
+    IF NEW.check_out_time IS NOT NULL AND 
+       (OLD.check_out_time IS NULL OR NEW.check_out_time <> OLD.check_out_time) AND
+       v_new_status_intermediate NOT IN (5, 4) THEN
+        IF TIME(NEW.check_out_time) < '19:00:00' THEN SET v_new_status_intermediate = 3;
+        ELSEIF OLD.status = 2 THEN SET v_new_status_intermediate = 2;
+        ELSE SET v_new_status_intermediate = 1;
+        END IF;
+    END IF;
+    
+    SET NEW.status = v_new_status_intermediate; -- 将最终判断的状态赋给NEW.status
+
+    IF NEW.status <> OLD.status THEN
+        SET v_status_changed = TRUE;
+    END IF;
+
+    IF v_status_changed THEN
+        SELECT performance_score INTO v_last_score_this_month
+        FROM attendance
+        WHERE emp_id = OLD.emp_id
+          AND DATE_FORMAT(date, '%Y-%m') = DATE_FORMAT(OLD.date, '%Y-%m')
+          AND date < OLD.date
+        ORDER BY date DESC, id DESC LIMIT 1;
+
+        IF v_last_score_this_month IS NULL THEN SET v_base_score_for_calc = 100;
+        ELSE SET v_base_score_for_calc = v_last_score_this_month;
+        END IF;
+
+        CASE NEW.status
+            WHEN 2 THEN SET v_deduction = 2;
+            WHEN 3 THEN SET v_deduction = 2;
+            WHEN 4 THEN SET v_deduction = 5;
+            WHEN 5 THEN SET v_deduction = 1;
+            ELSE SET v_deduction = 0;
+        END CASE;
+
+        SET NEW.performance_score = v_base_score_for_calc - v_deduction;
+        IF NEW.performance_score < 0 THEN SET NEW.performance_score = 0; END IF;
+    END IF;
+END //
+DELIMITER ;
+-------------------------------------------------------------------------------------------------
+部门触发器
+DELIMITER //
+CREATE TRIGGER trg_dept_delete_protect
+BEFORE DELETE ON dept
+FOR EACH ROW
+BEGIN
+    IF (SELECT COUNT(*) FROM emp WHERE dept_id = OLD.id) > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '该部门下有员工，无法删除！';
+    END IF;
+END //
+DELIMITER ;
+-------------------------------------------------------------------------------------------
+员工触发器
+DELIMITER //
+CREATE TRIGGER trg_emp_delete_protect
+BEFORE DELETE ON emp
+FOR EACH ROW
+BEGIN
+    -- 检查考勤记录
+    IF (SELECT COUNT(*) FROM attendance WHERE emp_id = OLD.id) > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '该员工存在考勤记录，无法删除！';
+    END IF;
+    -- 检查请假记录
+    IF (SELECT COUNT(*) FROM leave_record WHERE emp_id = OLD.id) > 0 THEN
+        SIGNAL SQLSTATE '45000' SET MESSAGE_TEXT = '该员工存在请假记录，无法删除！';
+    END IF;
+END //
+DELIMITER ;
+------------------------------------------------------------------------------------------------------------
+请假表
+CREATE TABLE leave_record (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  emp_id INT NOT NULL,
+  start_date DATE NOT NULL,
+  end_date DATE NOT NULL,
+  reason VARCHAR(255),
+  status TINYINT DEFAULT 0 COMMENT '0待审批 1通过 2拒绝',
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+  update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  CONSTRAINT fk_leave_emp FOREIGN KEY (id) REFERENCES emp(id)
+);
+-----------------------------------------------------------------------
+考勤表
+CREATE TABLE attendance (
+  id INT PRIMARY KEY AUTO_INCREMENT,
+  emp_id INT NOT NULL,
+  date DATE NOT NULL,
+  check_in_time DATETIME,
+  check_out_time DATETIME,
+  status TINYINT DEFAULT 1 COMMENT '1正常 2迟到 3早退 4缺卡 5请假',
+  create_time DATETIME DEFAULT CURRENT_TIMESTAMP,
+  update_time DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+  performance_score INT DEFAULT NULL COMMENT '绩效分数',
+  CONSTRAINT fk_att_emp FOREIGN KEY (emp_id) REFERENCES emp(id)
+);
+
+----------------------------------------------------
+CREATE DATABASE `zxyf`;
+USE `zxyf`;
+
+部门表
+CREATE TABLE `dept` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID, 主键',
+  `name` varchar(10) NOT NULL COMMENT '部门名称',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `update_time` datetime DEFAULT NULL COMMENT '修改时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `name` (`name`)
+) ENGINE=InnoDB AUTO_INCREMENT=34 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='部门表';
+---------------------------------------------------------------
+员工表
+CREATE TABLE `emp` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID,主键',
+  `username` varchar(20) NOT NULL COMMENT '用户名',
+  `password` varchar(50) DEFAULT '123456' COMMENT '密码',
+  `name` varchar(10) NOT NULL COMMENT '姓名',
+  `gender` tinyint unsigned NOT NULL COMMENT '性别, 1:男, 2:女',
+  `phone` char(11) NOT NULL COMMENT '手机号',
+  `job` tinyint unsigned DEFAULT NULL COMMENT '职位, 1 经理, 2 总监 , 3 主管, 4 组长, 5 普通员工,6 其他',
+  `salary` int unsigned DEFAULT NULL COMMENT '薪资',
+  `image` varchar(300) DEFAULT NULL COMMENT '头像',
+  `entry_date` date DEFAULT NULL COMMENT '入职日期',
+  `dept_id` int unsigned DEFAULT NULL COMMENT '部门ID',
+  `create_time` datetime DEFAULT NULL COMMENT '创建时间',
+  `update_time` datetime DEFAULT NULL COMMENT '修改时间',
+  PRIMARY KEY (`id`),
+  UNIQUE KEY `username` (`username`),
+  UNIQUE KEY `phone` (`phone`)
+) ENGINE=InnoDB AUTO_INCREMENT=55 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='员工表';
+-------------------------------------------------------------------------------
+工作经历表
+CREATE TABLE `emp_expr` (
+  `id` int unsigned NOT NULL AUTO_INCREMENT COMMENT 'ID, 主键',
+  `emp_id` int unsigned DEFAULT NULL COMMENT '员工ID',
+  `begin` date DEFAULT NULL COMMENT '开始时间',
+  `end` date DEFAULT NULL COMMENT '结束时间',
+  `company` varchar(50) DEFAULT NULL COMMENT '公司名称',
+  `job` varchar(50) DEFAULT NULL COMMENT '职位',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=50 DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='工作经历';
+-------------------------------------------------------------------------------
+帖子表
+CREATE TABLE emp_voice (
+                           id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+                           emp_id INT UNSIGNED NOT NULL COMMENT '发帖员工ID',
+                           content TEXT NOT NULL COMMENT '帖子内容',
+                           create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '发帖时间',
+                           update_time DATETIME DEFAULT NULL COMMENT '修改时间',
+                           FOREIGN KEY (emp_id) REFERENCES emp(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='员工心声（论坛）';
+-----------------------------------------------------------------------------------------------
+评论表
+CREATE TABLE emp_voice_comment (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  voice_id INT UNSIGNED NOT NULL COMMENT '帖子ID',
+  emp_id INT UNSIGNED NOT NULL COMMENT '评论人ID',
+  content TEXT NOT NULL,
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  FOREIGN KEY (voice_id) REFERENCES emp_voice(id),
+  FOREIGN KEY (emp_id) REFERENCES emp(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='员工心声评论';
+-----------------------------------------------------------------------------------------------------
+点赞表
+CREATE TABLE emp_voice_like (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  voice_id INT UNSIGNED NOT NULL COMMENT '帖子ID',
+  emp_id INT UNSIGNED NOT NULL COMMENT '点赞人ID',
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE KEY (voice_id, emp_id),
+  FOREIGN KEY (voice_id) REFERENCES emp_voice(id),
+  FOREIGN KEY (emp_id) REFERENCES emp(id)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='员工心声点赞';
+-------------------------------------------------------------------------------------------------
+公告表
+CREATE TABLE `announcement` (
+  `id` INT UNSIGNED NOT NULL AUTO_INCREMENT COMMENT '公告ID，主键',
+  `title` VARCHAR(100) NOT NULL COMMENT '公告标题',
+  `content` TEXT NOT NULL COMMENT '公告内容',
+  `create_time` DATETIME DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统公告表';
+
+-- 通知表
+CREATE TABLE notification (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
+  sender_id INT UNSIGNED NULL COMMENT '发送者ID，系统通知可为空',
+  receiver_id INT UNSIGNED NOT NULL COMMENT '接收者ID',
+  type TINYINT UNSIGNED NOT NULL COMMENT '通知类型 (例如: 1请假审批, 2心声评论, 3新公告)',
+  content TEXT NOT NULL COMMENT '通知内容',
+  related_id INT UNSIGNED NULL COMMENT '关联的业务ID (请假ID, 心声ID等)',
+  is_read BOOLEAN NOT NULL DEFAULT FALSE COMMENT '是否已读',
+  create_time DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP COMMENT '创建时间',
+  FOREIGN KEY (sender_id) REFERENCES emp(id) ON DELETE SET NULL,
+  FOREIGN KEY (receiver_id) REFERENCES emp(id) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='站内通知';
+
+
+
+
