@@ -1,3 +1,6 @@
+CREATE DATABASE `zxyf`;
+USE `zxyf`;
+----------------------------------------------------------------------------------------------
 DELIMITER //
 CREATE TRIGGER after_leave_insert_update_attendance
 AFTER INSERT ON leave_record
@@ -81,8 +84,6 @@ BEGIN
 END //
 DELIMITER ;
 ---------------------------------------------------------------------------------------
-
----------------------------------------------------------------------------------------------------
 DELIMITER //
 CREATE TRIGGER before_attendance_update
 BEFORE UPDATE ON attendance
@@ -280,7 +281,7 @@ CREATE TABLE `announcement` (
   `update_time` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP COMMENT '修改时间',
   PRIMARY KEY (`id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci COMMENT='系统公告表';
-
+----------------------------------------------------------------------------------------------------
 -- 通知表
 CREATE TABLE notification (
   id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY COMMENT '主键',
@@ -294,7 +295,260 @@ CREATE TABLE notification (
   FOREIGN KEY (sender_id) REFERENCES emp(id) ON DELETE SET NULL,
   FOREIGN KEY (receiver_id) REFERENCES emp(id) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COMMENT='站内通知';
+-------------------------------------------------------------------------------------------------------------------------
 
+INSERT INTO `emp` (`id`, `username`, `password`, `name`, `gender`, `phone`, `job`, `salary`, `image`, `entry_date`, `dept_id`, `create_time`, `update_time`) VALUES (1,'shinaian','123456','施耐庵',1,'13309090001',4,NULL,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2000-01-01',2,'2023-10-20 16:35:33','2023-11-16 16:11:26'),(2,'songjiang','123456','宋江',1,'13309090002',2,8600,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2015-01-01',2,'2023-10-20 16:35:33','2023-10-20 16:35:37'),(3,'lujunyi','123456','卢俊义',1,'13309090003',2,8900,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2008-05-01',2,'2023-10-20 16:35:33','2023-10-20 16:35:39'),(4,'wuyong','123456','吴用',1,'13309090004',2,9200,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2007-01-01',2,'2023-10-20 16:35:33','2023-10-20 16:35:41'),(5,'gongsunsheng','123456','公孙胜',1,'13309090005',2,9500,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2012-12-05',2,'2023-10-20 16:35:33','2023-10-20 16:35:43'),(6,'huosanniang','123456','扈三娘',2,'13309090006',3,6500,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2013-09-05',1,'2023-10-20 16:35:33','2023-10-20 16:35:45'),(7,'chaijin','123456','柴进',1,'13309090007',1,4700,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2005-08-01',1,'2023-10-20 16:35:33','2023-10-20 16:35:47'),(8,'likui','123456','李逵',1,'13309090008',1,4800,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2014-11-09',1,'2023-10-20 16:35:33','2023-10-20 16:35:49'),(9,'wusong','123456','武松',1,'13309090009',1,4900,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2011-03-11',1,'2023-10-20 16:35:33','2023-10-20 16:35:51'),(10,'linchong','123456','林冲',1,'13309090010',1,5000,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2013-09-05',1,'2023-10-20 16:35:33','2023-10-20 16:35:53'),(11,'huyanzhuo','123456','呼延灼',1,'13309090011',2,9700,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2007-02-01',2,'2023-10-20 16:35:33','2023-10-20 16:35:55'),(12,'xiaoliguang','123456','小李广',1,'13309090012',2,10000,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2008-08-18',2,'2023-10-20 16:35:33','2023-10-20 16:35:57'),(13,'yangzhi','123456','杨志',1,'13309090013',1,5300,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2012-11-01',1,'2023-10-20 16:35:33','2023-10-20 16:35:59'),(14,'shijin','123456','史进',1,'13309090014',2,10600,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2002-08-01',2,'2023-10-20 16:35:33','2023-10-20 16:36:01'),(15,'sunerniang','123456','孙二娘',2,'13309090015',2,10900,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2011-05-01',2,'2023-10-20 16:35:33','2023-10-20 16:36:03'),(16,'luzhishen','123456','鲁智深',1,'13309090016',2,9600,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2010-01-01',2,'2023-10-20 16:35:33','2023-10-20 16:36:05'),(17,'liying','12345678','李应',1,'13309090017',1,5800,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2015-03-21',1,'2023-10-20 16:35:33','2023-10-20 16:36:07'),(18,'shiqian','123456','时迁',1,'13309090018',2,10200,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2015-01-01',2,'2023-10-20 16:35:33','2023-10-20 16:36:09'),(19,'gudasao','123456','顾大嫂',2,'13309090019',2,10500,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2008-01-01',2,'2023-10-20 16:35:33','2023-10-20 16:36:11'),(20,'ruanxiaoer','123456','阮小二',1,'13309090020',2,10800,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2018-01-01',2,'2023-10-20 16:35:33','2023-10-20 16:36:13'),(21,'ruanxiaowu','123456','阮小五',1,'13309090021',5,5200,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2015-01-01',3,'2023-10-20 16:35:33','2023-10-20 16:36:15'),(22,'ruanxiaoqi','123456','阮小七',1,'13309090022',5,5500,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2016-01-01',3,'2023-10-20 16:35:33','2023-10-20 16:36:17'),(23,'ruanji','123456','阮籍',1,'13309090023',5,5800,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2012-01-01',3,'2023-10-20 16:35:33','2023-10-20 16:36:19'),(24,'tongwei','123456','童威',1,'13309090024',5,5000,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2006-01-01',3,'2023-10-20 16:35:33','2023-10-20 16:36:21'),(25,'tongmeng','123456','童猛',1,'13309090025',5,4800,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2002-01-01',3,'2023-10-20 16:35:33','2023-10-20 16:36:23'),(26,'yanshun','123456','燕顺',1,'13309090026',5,5400,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2011-01-01',3,'2023-10-20 16:35:33','2023-11-08 22:12:46'),(27,'lijun','123456','李俊',1,'13309090027',2,6600,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2004-01-01',2,'2023-10-20 16:35:33','2023-11-16 17:56:59'),(28,'lizhong','123456','李忠',1,'13309090028',5,5000,'https://web-framework.oss-cn-hangzhou.aliyuncs.com/2023/1.jpg','2007-01-01',3,'2023-10-20 16:35:33','2023-11-17 16:34:22')
+--------------------------------------------------------------------------------------------------------------------------------------------------------
+INSERT INTO `dept` (`id`, `name`, `create_time`, `update_time`) VALUES (1,'人事部','2023-09-25 09:47:40','2024-08-24 16:54:35'),(2,'技术部','2023-09-25 09:47:40','2024-08-09 15:17:04'),(3,'市场部','2023-09-25 09:47:40','2024-07-30 21:26:24'),(4,'法务部','2024-08-20 09:50:42','2024-08-20 09:50:42'),(5,'销售部','2024-08-25 16:38:38','2024-08-25 16:38:38'),(6,'财务部','2024-08-25 16:38:38','2024-08-25 16:38:38');
+---------------------------------------------------------------------------------------------------------------------------------------------------------
+考勤表attendance表因数据量大用python写！！！
+
+import datetime
+import random
+import mysql.connector  # 需要安装: pip install mysql-connector-python
+
+# --- 全局配置变量 ---
+DB_CONFIG = {
+    'host': 'localhost',
+    'port': 3306,
+    'user': 'root',  # 替换为您的 MySQL 用户名
+    'password': '123456',  # 替换为您的 MySQL 密码
+    'database': 'zxyf'  # 您的数据库名称
+}
+
+# 目标年份和要生成数据的日期范围
+# 生成2025年3月1日到2025年5月19日的数据
+YEAR_TO_GENERATE_DATA_FOR = 2025
+DATE_RANGES_TO_GENERATE = [
+    (datetime.date(YEAR_TO_GENERATE_DATA_FOR, 3, 1), datetime.date(YEAR_TO_GENERATE_DATA_FOR, 3, 31)),  # 3月
+    (datetime.date(YEAR_TO_GENERATE_DATA_FOR, 4, 1), datetime.date(YEAR_TO_GENERATE_DATA_FOR, 4, 30)),  # 4月
+    (datetime.date(YEAR_TO_GENERATE_DATA_FOR, 5, 1), datetime.date(YEAR_TO_GENERATE_DATA_FOR, 5, 19))  # 5月1日到19日
+]
+
+# 上下班时间规则 (应与触发器中的时间规则匹配)
+WORK_START_HOUR = 8
+WORK_START_MINUTE = 0
+WORK_END_HOUR = 19
+WORK_END_MINUTE = 0
+
+# 考勤状态的初步标记 (脚本使用，最终状态由触发器决定)
+STATUS_NORMAL_BY_SCRIPT = 1
+STATUS_LATE_BY_SCRIPT = 2  # 脚本初步判断为迟到
+STATUS_EARLY_LEAVE_BY_SCRIPT = 3  # 脚本初步判断为早退
+STATUS_ABSENT_CARD_BY_SCRIPT = 4  # 脚本判断为缺卡
+
+
+def get_employee_ids_from_db(conn_config):
+    """从数据库的 emp 表中获取员工工号 (id) 列表"""
+    emp_ids = []
+    conn = None
+    cursor = None
+    try:
+        conn = mysql.connector.connect(**conn_config)
+        cursor = conn.cursor()
+        cursor.execute("SELECT id FROM emp")  # emp.id 是员工工号
+        rows = cursor.fetchall()
+        for row in rows:
+            emp_ids.append(row[0])
+    except mysql.connector.Error as err:
+        print(f"Error fetching employee IDs from database: {err}")
+    finally:
+        if cursor:
+            cursor.close()
+        if conn and conn.is_connected():
+            conn.close()
+    # 如果获取失败，返回一个小的默认列表用于测试，或者您可以选择让程序退出
+    return emp_ids if emp_ids else list(range(1, 6))
+
+
+def generate_random_time_around(base_hour, base_minute, on_time_window_minutes_early=10, on_time_window_minutes_late=5,
+                                significant_offset_minutes=60):
+    """
+    在基础时间前后随机偏移生成时间。
+    调整参数以模拟更真实的打卡行为。
+    """
+    base_datetime = datetime.datetime.combine(datetime.date.today(), datetime.time(base_hour, base_minute))
+    roll = random.random()
+    offset_minutes = 0
+
+    if base_hour == WORK_START_HOUR:  # 上班打卡模拟
+        if roll < 0.70:  # 70% 概率在正常窗口内 (允许早到，稍微晚到一点点)
+            offset_minutes = random.randint(-on_time_window_minutes_early, on_time_window_minutes_late)
+        elif roll < 0.90:  # 20% 概率迟到 (在significant_offset_minutes内)
+            offset_minutes = random.randint(on_time_window_minutes_late + 1, significant_offset_minutes)
+        else:  # 10% 概率严重迟到
+            offset_minutes = random.randint(significant_offset_minutes + 1,
+                                            significant_offset_minutes + 30)  # 比如最多再晚30分钟
+    elif base_hour == WORK_END_HOUR:  # 下班打卡模拟
+        if roll < 0.70:  # 70% 概率在正常窗口内 (允许稍微早走一点点，或晚走)
+            offset_minutes = random.randint(-on_time_window_minutes_late, on_time_window_minutes_early)
+        elif roll < 0.90:  # 20% 概率早退 (在significant_offset_minutes内)
+            offset_minutes = random.randint(-significant_offset_minutes, -(on_time_window_minutes_late + 1))
+        else:  # 10% 概率严重早退
+            offset_minutes = random.randint(-(significant_offset_minutes + 30), -(significant_offset_minutes + 1))
+
+    final_datetime = base_datetime + datetime.timedelta(minutes=offset_minutes)
+    return final_datetime.time()
+
+
+def generate_attendance_data(employee_ids, date_ranges_to_generate):
+    """为指定的员工和日期范围生成考勤数据"""
+    records_to_insert = []
+
+    print(f"Generating data for {len(employee_ids)} employees.")
+    print(f"Target date ranges: {date_ranges_to_generate}")
+
+    for start_date_range, end_date_range in date_ranges_to_generate:
+        current_date_iter = start_date_range
+        while current_date_iter <= end_date_range:
+            # 跳过周末 (Python weekday: Monday is 0 and Sunday is 6)
+            if current_date_iter.weekday() >= 5:  # 5 for Saturday, 6 for Sunday
+                current_date_iter += datetime.timedelta(days=1)
+                continue
+
+            for emp_id in employee_ids:
+                check_in_time_val = None
+                check_out_time_val = None
+                # 脚本为status提供一个基于打卡时间的初步猜测，最终status由触发器决定
+                initial_status_for_script = STATUS_NORMAL_BY_SCRIPT  # 默认为正常
+
+                action_roll = random.random()
+                if action_roll < 0.85:  # 85% 的概率有打卡行为 (可能是完整的，也可能是缺一次)
+                    # 模拟上班打卡
+                    if random.random() < 0.95:  # 95% 的概率实际打了上班卡
+                        cin_time_obj = generate_random_time_around(WORK_START_HOUR, WORK_START_MINUTE, 15, 2)
+                        check_in_time_val = datetime.datetime.combine(current_date_iter, cin_time_obj)
+                        if cin_time_obj > datetime.time(WORK_START_HOUR, WORK_START_MINUTE):
+                            initial_status_for_script = STATUS_LATE_BY_SCRIPT
+
+                    # 模拟下班打卡
+                    if random.random() < 0.95:  # 95% 的概率实际打了下班卡
+                        cout_time_obj = generate_random_time_around(WORK_END_HOUR, WORK_END_MINUTE, 2, 15)
+                        check_out_time_val = datetime.datetime.combine(current_date_iter, cout_time_obj)
+                        if cout_time_obj < datetime.time(WORK_END_HOUR,
+                                                         WORK_END_MINUTE) and initial_status_for_script != STATUS_LATE_BY_SCRIPT:  # 如果没迟到但早退了
+                            initial_status_for_script = STATUS_EARLY_LEAVE_BY_SCRIPT
+                        elif cout_time_obj < datetime.time(WORK_END_HOUR,
+                                                           WORK_END_MINUTE) and initial_status_for_script == STATUS_LATE_BY_SCRIPT:  # 如果迟到了还早退(特殊情况，status可能需要更复杂逻辑)
+                            # 触发器可能需要处理这种组合状态，这里脚本简单标记为早退优先或迟到优先
+                            initial_status_for_script = STATUS_EARLY_LEAVE_BY_SCRIPT  # 或者保持 STATUS_LATE_BY_SCRIPT
+
+                    # 根据打卡情况进一步修正初步状态
+                    if check_in_time_val is None and check_out_time_val is not None:
+                        initial_status_for_script = STATUS_ABSENT_CARD_BY_SCRIPT  # 缺上班卡
+                    elif check_in_time_val is not None and check_out_time_val is None:
+                        initial_status_for_script = STATUS_ABSENT_CARD_BY_SCRIPT  # 缺下班卡
+                    elif check_in_time_val is None and check_out_time_val is None:  # 虽然上面action_roll控制了，但这里双重保险
+                        initial_status_for_script = STATUS_ABSENT_CARD_BY_SCRIPT  # 全天缺卡
+
+                else:  # 15% 全天缺卡
+                    initial_status_for_script = STATUS_ABSENT_CARD_BY_SCRIPT
+
+                records_to_insert.append((
+                    emp_id,
+                    current_date_iter.strftime('%Y-%m-%d'),
+                    check_in_time_val.strftime('%Y-%m-%d %H:%M:%S') if check_in_time_val else None,
+                    check_out_time_val.strftime('%Y-%m-%d %H:%M:%S') if check_out_time_val else None,
+                    initial_status_for_script  # Python 脚本传入一个初始状态
+                ))
+            current_date_iter += datetime.timedelta(days=1)
+
+    return records_to_insert
+
+
+def insert_data_to_db(records):
+    conn = None
+    cursor = None
+    inserted_count = 0
+    try:
+        conn = mysql.connector.connect(**DB_CONFIG)
+        cursor = conn.cursor()
+
+        # 插入数据时，status 由脚本提供一个初步值，performance_score 由触发器计算
+        # 确保SQL语句中的列名与您的表定义完全一致
+        sql_insert = """
+        INSERT INTO attendance (emp_id, date, check_in_time, check_out_time, status, create_time, update_time) 
+        VALUES (%s, %s, %s, %s, %s, NOW(), NOW())
+        """
+
+        batch_size = 500
+        for i in range(0, len(records), batch_size):
+            batch = records[i:i + batch_size]
+            try:
+                cursor.executemany(sql_insert, batch)
+                conn.commit()
+                inserted_count += cursor.rowcount
+                print(
+                    f"Inserted {cursor.rowcount} records in batch {i // batch_size + 1}. Total inserted: {inserted_count}")
+            except mysql.connector.Error as batch_err:
+                print(f"Error inserting batch {i // batch_size + 1}: {batch_err}")
+                print("Problematic batch data (first record of batch):", batch[0] if batch else "Empty batch")
+                conn.rollback()  # 回滚当前失败的批次
+
+    except mysql.connector.Error as err:
+        print(f"Database connection error or other SQL error: {err}")
+    finally:
+        if cursor:
+            cursor.close()
+        if conn and conn.is_connected():
+            conn.close()
+            print("MySQL connection is closed.")
+    return inserted_count
+
+
+if __name__ == "__main__":
+    print("Fetching employee IDs from database...")
+    employee_id_list = get_employee_ids_from_db(DB_CONFIG)
+
+    if not employee_id_list:
+        print(
+            "CRITICAL: No employee IDs found. Please ensure 'emp' table has data or adjust fallback in get_employee_ids_from_db(). Exiting.")
+    else:
+        print(
+            f"Successfully fetched {len(employee_id_list)} employee IDs. Example: {employee_id_list[:min(5, len(employee_id_list))]}")
+
+        print(f"\nGenerating attendance data for specified date ranges up to May 19, {YEAR_TO_GENERATE_DATA_FOR}...")
+        generated_records = generate_attendance_data(employee_id_list, DATE_RANGES_TO_GENERATE)
+
+        if generated_records:
+            print(f"\nGenerated {len(generated_records)} attendance records.")
+            print("Sample of generated data (first 3 records):")
+            for rec in generated_records[:3]:
+                print(
+                    f"  EmpID: {rec[0]}, Date: {rec[1]}, CheckIn: {rec[2]}, CheckOut: {rec[3]}, ScriptInitialStatus: {rec[4]}")
+
+            proceed = input(
+                f"\nDo you want to insert these records into the database `{DB_CONFIG['database']}`.`attendance`? (yes/no): ")
+            if proceed.lower() == 'yes':
+                print("\nOptional: Clearing old data for the specified date ranges...")
+                try:
+                    conn_temp = mysql.connector.connect(**DB_CONFIG)
+                    cursor_temp = conn_temp.cursor()
+                    total_cleared = 0
+                    for start_r, end_r in DATE_RANGES_TO_GENERATE:
+                        delete_query = f"DELETE FROM attendance WHERE date BETWEEN '{start_r.strftime('%Y-%m-%d')}' AND '{end_r.strftime('%Y-%m-%d')}'"
+                        print(f"Executing: {delete_query}")
+                        cursor_temp.execute(delete_query)
+                        total_cleared += cursor_temp.rowcount
+                    conn_temp.commit()
+                    print(
+                        f"{total_cleared} old records cleared for the specified date ranges in {YEAR_TO_GENERATE_DATA_FOR}.")
+                    cursor_temp.close()
+                    conn_temp.close()
+                except mysql.connector.Error as e:
+                    print(f"Error clearing old data: {e}")
+
+                print("\nInserting data into the database...")
+                total_inserted = insert_data_to_db(generated_records)
+                print(f"\nData insertion process finished. Total records effectively inserted: {total_inserted}")
+                print(
+                    "Please verify the 'status' and 'performance_score' in the 'attendance' table, which should be handled by your triggers.")
+                print(
+                    "Consider running your `gen_performance` stored procedure if `attendance.performance_score` is not the final monthly cumulative score.")
+            else:
+                print("Data insertion cancelled by user.")
+        else:
+            print("No data generated (perhaps no working days in the target range or no employee IDs).")
 
 
 
