@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.xynu.kaoqin.mapper.AttendanceMapper">
+
+    <!-- 上班打卡（插入或更新） -->
+    <insert id="insertCheckIn">
+        INSERT INTO attendance (emp_id, date, check_in_time, status, performance_score)
+        VALUES (#{empId}, #{date}, #{checkInTime}, #{status}, #{performanceScore})
+        ON DUPLICATE KEY UPDATE 
+            check_in_time = #{checkInTime},
+            status = #{status},
+            performance_score = #{performanceScore}
+    </insert>
+
+    <!-- 下班打卡（更新） -->
+    <update id="updateCheckOut">
+        UPDATE attendance
+        SET check_out_time = #{checkOutTime}
+        WHERE emp_id = #{empId} AND date = #{date}
+    </update>
+
+    <!-- 查询某员工某天的考勤记录 -->
+    <select id="selectByEmpIdAndDate" resultType="org.xynu.kaoqin.entity.Attendance">
+        SELECT * FROM attendance WHERE emp_id = #{empId} AND date = #{date}
+    </select>
+
+    <!-- 查询某员工所有考勤记录 -->
+    <select id="selectByEmpId" resultType="org.xynu.kaoqin.entity.Attendance">
+        SELECT * FROM attendance WHERE emp_id = #{empId} ORDER BY date DESC
+    </select>
+
+    <!-- 查询某部门某天所有员工考勤记录 -->
+    <select id="selectByDeptIdAndDate" resultType="org.xynu.kaoqin.entity.Attendance">
+        SELECT a.*
+        FROM attendance a
+        JOIN emp e ON a.emp_id = e.id
+        WHERE e.dept_id = #{deptId} AND a.date = #{date}
+        ORDER BY a.emp_id
+    </select>
+
+    <!-- 查询某员工某月的考勤记录 -->
+    <select id="selectByEmpIdAndMonth" resultType="org.xynu.kaoqin.entity.Attendance">
+        SELECT * FROM attendance
+        WHERE emp_id = #{empId} AND DATE_FORMAT(date, '%Y-%m') = #{month}
+        ORDER BY date
+    </select>
+
+    <!-- 查询某员工最近一次有记录的绩效分数 -->
+    <select id="selectLastScore" resultType="java.lang.Integer">
+        SELECT performance_score
+        FROM attendance
+        WHERE emp_id = #{empId} AND date &lt; #{date}
+        ORDER BY date DESC
+        LIMIT 1
+    </select>
+
+    <!-- 查询某员工最近一次打卡日期 -->
+    <select id="selectLastAttendanceDate" resultType="java.time.LocalDate">
+        SELECT date FROM attendance WHERE emp_id = #{empId} ORDER BY date DESC LIMIT 1
+    </select>
+
+    <select id="selectBadAttendance" resultType="map">
+        SELECT
+            e.id AS emp_id,
+            e.name AS emp_name,
+            e.dept_id,
+            SUM(CASE WHEN a.status = 2 THEN 1 ELSE 0 END) AS late_count,
+            SUM(CASE WHEN a.status = 3 THEN 1 ELSE 0 END) AS early_leave_count,
+            SUM(CASE WHEN a.status = 4 THEN 1 ELSE 0 END) AS absent_count,
+            SUM(CASE WHEN a.status = 5 THEN 1 ELSE 0 END) AS leave_count
+        FROM emp e
+        LEFT JOIN attendance a ON e.id = a.emp_id
+        GROUP BY e.id, e.name, e.dept_id
+        ORDER BY absent_count DESC, late_count DESC, early_leave_count DESC, leave_count DESC
+        LIMIT 10
+    </select>
+
+    <select id="selectByEmpIdAndDateRange" resultType="org.xynu.kaoqin.entity.Attendance">
+        SELECT * FROM attendance 
+        WHERE emp_id = #{empId} 
+        AND date BETWEEN #{startDate} AND #{endDate}
+        ORDER BY date DESC
+    </select>
+
+</mapper>

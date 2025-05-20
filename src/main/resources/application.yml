@@ -1,0 +1,22 @@
+spring:
+  application:
+    name: kaoqin
+  datasource:
+    url: jdbc:mysql://localhost:3306/zxyf?useSSL=false&serverTimezone=UTC&allowPublicKeyRetrieval=true&useSSL=false
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: Asia/Shanghai
+    serialization:
+      WRITE_DATES_AS_TIMESTAMPS: false
+  web:
+    resources:
+      static-locations: file:/D:/upload/
+
+mybatis:
+  type-aliases-package: org.xynu.kaoqin.entity
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true

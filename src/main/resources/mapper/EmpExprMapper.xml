@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.xynu.kaoqin.mapper.EmpExprMapper">
+
+    <!-- 查询员工经历 -->
+    <select id="selectByEmpId" resultType="org.xynu.kaoqin.entity.EmpExpr">
+        SELECT * FROM emp_expr WHERE emp_id = #{empId}
+    </select>
+
+    <!-- 批量插入员工经历 -->
+    <insert id="insertBatch">
+        INSERT INTO emp_expr (emp_id, company, job, begin, end)
+        VALUES
+        <foreach collection="exprList" item="item" separator=",">
+            (#{item.empId}, #{item.company}, #{item.job}, #{item.begin}, #{item.end})
+        </foreach>
+    </insert>
+
+    <!-- 删除员工经历 -->
+    <delete id="deleteByEmpId" parameterType="int">
+        DELETE FROM emp_expr WHERE emp_id = #{empId}
+    </delete>
+
+</mapper>
