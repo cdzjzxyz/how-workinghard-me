@@ -1,0 +1,29 @@
+package org.xynu.kaoqin.controller;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+
+@RestController
+@RequestMapping("/leave")
+public class LeaveController {
+    @Autowired
+    private LeaveRecordMapper leaveRecordMapper;
+
+    @PostMapping("/apply")
+    public Result<?> apply(@RequestBody LeaveRecord leave, @RequestHeader("token") String token) {
+        Integer empId = JwtUtil.getUserId(token);
+        leave.setEmpId(empId);
+        leaveRecordMapper.insertLeave(leave);
+        return Result.success(null);
+    }
+
+    @GetMapping("/my")
+    public Result<List<LeaveRecord>> myLeaves(@RequestHeader("token") String token) {
+        Integer empId = JwtUtil.getUserId(token);
+        return Result.success(leaveRecordMapper.selectByEmpId(empId));
+    }
+
+    // 管理员审批接口略
+}

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.xynu.kaoqin.mapper.EmpVoiceMapper">
+    <insert id="insert" parameterType="org.xynu.kaoqin.entity.EmpVoice">
+        INSERT INTO emp_voice (emp_id, content, create_time)
+        VALUES (#{empId}, #{content}, NOW())
+    </insert>
+    <select id="selectAll" resultType="org.xynu.kaoqin.entity.EmpVoice">
+        SELECT * FROM emp_voice ORDER BY create_time DESC
+    </select>
+    <select id="selectPage" resultType="map">
+        SELECT v.*, e.name AS empName, e.image AS image,
+          (SELECT COUNT(*) FROM emp_voice_like l WHERE l.voice_id = v.id) AS likeCount
+        FROM emp_voice v
+        LEFT JOIN emp e ON v.emp_id = e.id
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND v.content LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+        </where>
+        ORDER BY v.create_time DESC
+        LIMIT #{offset}, #{pageSize}
+    </select>
+    <select id="countPage" resultType="int">
+        SELECT COUNT(*) FROM emp_voice v
+        <where>
+            <if test="keyword != null and keyword != ''">
+                AND v.content LIKE CONCAT('%', #{keyword}, '%')
+            </if>
+        </where>
+    </select>
+    <delete id="deleteById">
+        DELETE FROM emp_voice WHERE id = #{id}
+    </delete>
+    <insert id="insertComment">
+        INSERT INTO emp_voice_comment (voice_id, emp_id, content, create_time)
+        VALUES (#{voiceId}, #{empId}, #{content}, NOW())
+    </insert>
+    <select id="selectComments" resultType="map">
+        SELECT c.*, e.name AS empName, e.image AS image
+        FROM emp_voice_comment c
+        LEFT JOIN emp e ON c.emp_id = e.id
+        WHERE c.voice_id = #{voiceId}
+        ORDER BY c.create_time ASC
+    </select>
+    <insert id="insertLike">
+        INSERT IGNORE INTO emp_voice_like (voice_id, emp_id, create_time)
+        VALUES (#{voiceId}, #{empId}, NOW())
+    </insert>
+    <delete id="deleteLike">
+        DELETE FROM emp_voice_like WHERE voice_id = #{voiceId} AND emp_id = #{empId}
+    </delete>
+    <select id="countLikes" resultType="int">
+        SELECT COUNT(*) FROM emp_voice_like WHERE voice_id = #{voiceId}
+    </select>
+    <select id="hasLiked" resultType="boolean">
+        SELECT COUNT(*) > 0 FROM emp_voice_like WHERE voice_id = #{voiceId} AND emp_id = #{empId}
+    </select>
+    <select id="selectById" resultType="org.xynu.kaoqin.entity.EmpVoice">
+        SELECT * FROM emp_voice WHERE id = #{id}
+    </select>
+    <select id="selectCommentById" resultType="org.xynu.kaoqin.entity.EmpVoiceComment">
+        SELECT * FROM emp_voice_comment WHERE id = #{id}
+    </select>
+    <delete id="deleteCommentById">
+        DELETE FROM emp_voice_comment WHERE id = #{id}
+    </delete>
+</mapper>

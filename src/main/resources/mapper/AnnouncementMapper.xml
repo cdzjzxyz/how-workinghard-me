@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="org.xynu.kaoqin.mapper.AnnouncementMapper">
+
+    <!-- 添加公告 -->
+    <insert id="insert" parameterType="org.xynu.kaoqin.entity.Announcement" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO announcement (title, content, create_time, update_time)
+        VALUES (#{title}, #{content}, NOW(), NOW())
+    </insert>
+
+    <!-- 查询所有公告 -->
+    <select id="selectList" resultType="org.xynu.kaoqin.entity.Announcement">
+        SELECT * FROM announcement ORDER BY create_time DESC
+    </select>
+
+    <!-- 根据ID查询公告 -->
+    <select id="selectById" resultType="org.xynu.kaoqin.entity.Announcement">
+        SELECT * FROM announcement WHERE id = #{id}
+    </select>
+
+    <!-- 更新公告 -->
+    <update id="updateById" parameterType="org.xynu.kaoqin.entity.Announcement">
+        UPDATE announcement
+        SET title = #{title},
+            content = #{content},
+            update_time = NOW()
+        WHERE id = #{id}
+    </update>
+
+    <!-- 删除公告 -->
+    <delete id="deleteById">
+        DELETE FROM announcement WHERE id = #{id}
+    </delete>
+
+    <!-- 查询最新公告 -->
+    <select id="selectLatest" resultType="org.xynu.kaoqin.entity.Announcement">
+        SELECT * FROM announcement ORDER BY create_time DESC LIMIT 1
+    </select>
+
+</mapper>
+
+
+
