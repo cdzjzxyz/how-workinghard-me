@@ -1,0 +1,65 @@
+/* src/assets/global.css */
+body {
+  font-family: 'Source Han Sans SC', '微软雅黑', 'Arial', sans-serif;
+  background: #f4f7fa;
+  color: #222;
+}
+.el-card {
+  border-radius: 16px !important;
+  box-shadow: 0 4px 24px rgba(0,0,0,0.08) !important;
+  border: none !important;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f8f8 50%, #ffffff 100%);
+  padding: 24px 32px;
+  transition: all 0.3s ease;
+  margin: 16px;
+}
+.el-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.12) !important;
+}
+.el-input, .el-select, .el-date-picker, .el-form-item__content {
+  border-radius: 8px !important;
+}
+.el-button {
+  border-radius: 8px !important;
+  font-weight: bold;
+  transition: box-shadow 0.2s;
+}
+.el-button:hover {
+  box-shadow: 0 2px 8px rgba(64,158,255,0.15);
+}
+.el-menu {
+  background: transparent !important;
+  color: #fff !important;
+}
+.el-menu-item.is-active, .el-menu-item:hover {
+  background: rgba(255,255,255,0.12) !important;
+  color: #fff !important;
+  border-radius: 8px;
+}
+.el-aside {
+  background: linear-gradient(135deg, #409EFF 60%, #53a8ff 100%) !important;
+  color: #fff !important;
+  border-right: none !important;
+}
+.el-header {
+}
+
+.el-main {
+  background: linear-gradient(135deg, #c7e9ff 0%, #a6d9f7 30%, #89cff0 60%, #a6d9f7 90%, #c7e9ff 100%) !important;
+  padding: 36px 40px 32px 40px !important;
+  position: relative !important;
+}
+
+.el-main::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: url('@/assets/pattern.svg') repeat;
+  opacity: 0.05;
+  pointer-events: none;
+  z-index: 0;
+}
